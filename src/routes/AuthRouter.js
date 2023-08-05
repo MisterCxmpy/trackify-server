@@ -10,7 +10,7 @@ router.post('/login', async (req, res) => {
         const token = AuthService.createToken(user.id);
 
         res.cookie('token', token, { maxAge: TWO_HOURS }) // move to config file later
-        res.json({ ...user, token });
+        res.json({ message: 'Succesfully Logged in.' });
     } catch (error) {
         console.log(error)
         res.json({ message: error.message })
@@ -24,7 +24,7 @@ router.post('/register', async (req, res) => {
         const token = AuthService.createToken(user.id);
 
         res.cookie('token', token, { maxAge: TWO_HOURS }) // move to config file later
-        res.json({ ...user.dataValues, token });
+        res.json({ message: 'Succesfully Registered.' });
     } catch (error) {
         console.log(error)
         res.json({ message: error.message })

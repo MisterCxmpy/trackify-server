@@ -21,7 +21,7 @@ class TeamService {
 
             return allTeams;
         } catch (error) {
-            console.log(error)
+            console.error(error)
             throw new Error('Team Query Failed.');
         }
     }
@@ -36,7 +36,7 @@ class TeamService {
 
             return teams[0];
         } catch (error) {
-            console.log(error)
+            console.error(error)
             throw new Error('Team Query Failed.');
         }
     }
@@ -53,6 +53,7 @@ class TeamService {
 
             return 'Member added to team successfully.';
         } catch (error) {
+            console.error(error)
             throw new Error('Adding member to team failed.');
         }
     }
@@ -72,6 +73,7 @@ class TeamService {
 
             return 'Ticket added to backlog successfully.';
         } catch (error) {
+            console.error(error)
             throw new Error('Adding ticket to backlog failed.');
         }
     }

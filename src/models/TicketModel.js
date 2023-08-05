@@ -5,7 +5,8 @@ const User = require('./UserModel')
 const Ticket = sequelize.define('Ticket', {
     id: {
         type: DataTypes.INTEGER,
-        primaryKey: true
+        primaryKey: true,
+        autoIncrement: true
     },
     title: {
         type: DataTypes.STRING,

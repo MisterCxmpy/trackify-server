@@ -1,4 +1,6 @@
+const { Op } = require('sequelize');
 const Team = require('../models/TeamModel');
+const User = require('../models/UserModel');
 
 class TeamService {
     static async createTeam(teamData) {
@@ -6,7 +8,36 @@ class TeamService {
             const newTeam = await Team.create(teamData);
             return newTeam;
         } catch (error) {
+            console.log(error)
             throw new Error('Team creation failed.');
+        }
+    }
+
+    static async findAll() {
+        try {
+            const allTeams = await Team.findAll({
+                include: { model: User, as: 'members' },
+            });
+
+            return allTeams;
+        } catch (error) {
+            console.log(error)
+            throw new Error('Team Query Failed.');
+        }
+    }
+
+    static async find(id) {
+        try {
+            const teams = await Team.findAll({
+                where: { id: { [Op.eq]: id } },
+                include: { model: User, as: 'members' },
+                limit: 1
+            });
+
+            return teams[0];
+        } catch (error) {
+            console.log(error)
+            throw new Error('Team Query Failed.');
         }
     }
 
@@ -44,9 +75,6 @@ class TeamService {
             throw new Error('Adding ticket to backlog failed.');
         }
     }
-
-
-    // Add other methods as needed
 
 }
 

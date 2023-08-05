@@ -2,10 +2,13 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../database/sequelize'); // Import your Sequelize instance
 const User = require('./UserModel');
 
+const { v4: uuidv4 } = require('uuid');
+
 const Team = sequelize.define('Team', {
     id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true
+        type: DataTypes.STRING,
+        primaryKey: true,
+        defaultValue: () => uuidv4()
     },
     team_name: {
         type: DataTypes.STRING,
@@ -18,6 +21,6 @@ const Team = sequelize.define('Team', {
 });
 
 // Define associations
-Team.hasMany(User, { foreignKey: 'team_id' });
+Team.hasMany(User, { foreignKey: 'team_id', as: 'members' });
 
 module.exports = Team;

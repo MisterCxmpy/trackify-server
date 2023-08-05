@@ -1,6 +1,19 @@
 const router = require('express').Router();
 const TeamService = require('../services/TeamService');
 
+// DEV OPERATIONS
+
+router.get('/', async (req, res) => {
+    try {
+        const teams = await TeamService.findAll();
+
+        res.json(teams)
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+})
+
+
 // Team CRUD Operations
 
 router.post('/new', async (req, res) => {
@@ -15,7 +28,7 @@ router.post('/new', async (req, res) => {
 router.get('/:teamId', async (req, res) => {
     try {
         const teamId = req.params.teamId;
-        const teamDetails = await TeamService.getTeamDetails(teamId);
+        const teamDetails = await TeamService.find(teamId);
         res.json(teamDetails);
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch team details.' });

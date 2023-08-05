@@ -172,6 +172,40 @@ module.exports = router;
 
 Define data models for teams, members, and tickets (`teamModel.js`, `memberModel.js`, `ticketModel.js`) using any storage technology (e.g., a database or in-memory store).
 
+In our case, this is sequelize for a good ORM for postgres and other SQL databases.
+
+```javascript
+
+const { DataTypes } = require('sequelize');
+const sequelize = require('../database/sequelize'); // Import your Sequelize instance
+const User = require('./UserModel');
+
+const { v4: uuidv4 } = require('uuid');
+
+const Team = sequelize.define('Team', {
+    id: {
+        type: DataTypes.STRING,
+        primaryKey: true,
+        defaultValue: () => uuidv4() // Create a long unique Id for each team 
+    },
+    team_name: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
+    backlog: {
+        type: DataTypes.ARRAY(DataTypes.INTEGER), // Assuming backlog contains ticket IDs
+        defaultValue: [] // Initialize with an empty array
+    }
+});
+
+// Define associations
+Team.hasMany(User, { foreignKey: 'team_id', as: 'members' });
+
+module.exports = Team;
+
+
+```
+
 ## App Setup (`app.js`)
 
 Set up your Express application, configure routes, and start the server.

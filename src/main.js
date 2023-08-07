@@ -21,10 +21,9 @@ app.use('/me', validateToken, UserRouter)
 
 // need to:
 
-// add members to team
 // remove members from team
 
-// add tickets to backlog and assign them to members
+// assign tickets to members
 // edit state of tickets and reassign them to new members
 
 // extract route logic to controllers

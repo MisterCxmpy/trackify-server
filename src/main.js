@@ -23,6 +23,8 @@ app.use('/me', validateToken, UserRouter)
 
 // remove members from team
 
+// add first, last name and email to the user model, concattinate both to create username 
+
 // assign tickets to members
 // edit state of tickets and reassign them to new members
 

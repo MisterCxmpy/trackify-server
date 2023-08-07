@@ -1,7 +1,6 @@
 const router = require('express').Router();
 const UserService = require('../services/UserService');
 
-
 router.get('/teams', async (req, res) => {
     try {
         const teams = await UserService.getUserTeams(req.userId)

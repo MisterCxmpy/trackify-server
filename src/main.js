@@ -1,26 +1,34 @@
 const express = require('express');
 const app = express()
+const cookieParser = require('cookie-parser')
+const cors = require('cors')
 
-const AuthRouter = require('./routes/AuthRouter')
-const TeamRouter = require('./routes/TeamRouter')
+const { validateToken } = require('./utils/validateToken');
 
-app.use(express.json())
+const AuthRouter = require('./routes/AuthRouter');
+const TeamRouter = require('./routes/TeamRouter');
+const UserRouter = require('./routes/UserRouter');
+
+app.use(express.json());
+app.use(cookieParser());
+app.use(cors({ credentials: true })) // add your client domain in here like { origin: 'http://localhost:5172' }
 
 app.use('/auth', AuthRouter)
-app.use('/teams', TeamRouter)
+app.use('/teams', validateToken, TeamRouter)
+app.use('/me', validateToken, UserRouter)
 
 // currently can create teams and query teams for their associated members
 
 // need to:
 
-// add members to team
 // remove members from team
 
-// add tickets to backlog and assign them to members
+// add first, last name and email to the user model, concattinate both to create username 
+
+// assign tickets to members
 // edit state of tickets and reassign them to new members
 
 // extract route logic to controllers
-// restrict access to services
 
 app.get('/', (req, res, next) => {
     res.json({ message: 'ok. api is working' })

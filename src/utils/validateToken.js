@@ -14,7 +14,7 @@ const validateToken = (req, res, next) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
         // Attach the decoded token to the request object for later use
-        req.userId = decoded.userId;
+        req.userId = decoded;
 
         // Proceed to the next middleware or route handler
         next();

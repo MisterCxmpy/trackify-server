@@ -1,8 +1,26 @@
 const { Op } = require('sequelize');
 const Team = require('../models/TeamModel');
 const User = require('../models/UserModel');
+const Ticket = require('../models/TicketModel');
 
 class TeamService {
+
+    static scrubTeamResponse(data) {
+        return {
+            id: data.id,
+            team_name: data.team_name,
+            backlog: data.backlog,
+            members: data.Users?.map(user => {
+                return {
+                    id: user.id,
+                    username: user.username,
+                    createdAt: user.createdAt,
+                    updatedAt: user.updatedAt
+                };
+            })
+        }
+    }
+
     static async createTeam(teamData) {
         try {
             const newTeam = await Team.create(teamData);
@@ -16,10 +34,13 @@ class TeamService {
     static async findAll() {
         try {
             const allTeams = await Team.findAll({
-                include: { model: User, as: 'members' },
+                include: {
+                    model: User,
+                    attributes: { exclude: ['password', 'id', 'updatedAt'] } // Exclude the 'password' attribute
+                },
             });
 
-            return allTeams;
+            return allTeams.map(this.scrubTeamResponse);
         } catch (error) {
             console.error(error)
             throw new Error('Team Query Failed.');
@@ -30,11 +51,11 @@ class TeamService {
         try {
             const teams = await Team.findAll({
                 where: { id: { [Op.eq]: id } },
-                include: { model: User, as: 'members' },
+                include: { model: User, attributes: { exclude: ['password', 'id', 'updatedAt'] } },
                 limit: 1
             });
 
-            return teams[0];
+            return this.scrubTeamResponse(teams[0]);
         } catch (error) {
             console.error(error)
             throw new Error('Team Query Failed.');
@@ -58,23 +79,42 @@ class TeamService {
         }
     }
 
-    static async addToBacklog(teamId, ticketId) {
+    static async getMemberTasks(teamId, memberId) {
         try {
             const team = await Team.findByPk(teamId);
-            if (!team) {
-                throw new Error('Team not found.');
-            }
+            const backlog = team.backlog;
 
-            // Update the backlog array by pushing the ticketId
-            team.backlog.push(ticketId);
+            const filtered = backlog.filter(ticket => ticket.owner === memberId);
 
-            // Save the updated team
-            await team.save();
+            return filtered;
 
-            return 'Ticket added to backlog successfully.';
         } catch (error) {
             console.error(error)
-            throw new Error('Adding ticket to backlog failed.');
+            throw new Error('Failed to query backlog.');
+        }
+    }
+
+    static async getBacklog(teamId) {
+        try {
+            const team = await Team.findByPk(teamId);
+            const backlog = team.backlog;
+
+            const tickets = await Ticket.findAll({
+                where: {
+                    id: {
+                        [Op.in]: backlog // Use the $in operator to match any ID in the array
+                    }
+                },
+                attributes: {
+                    exclude: 'team_id'
+                }
+            });
+
+            return tickets;
+
+        } catch (error) {
+            console.log(error)
+            throw new Error('Failed to query backlog.');
         }
     }
 

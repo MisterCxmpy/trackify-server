@@ -4,14 +4,16 @@ const cookieParser = require('cookie-parser')
 
 const { validateToken } = require('./utils/validateToken');
 
-const AuthRouter = require('./routes/AuthRouter')
+const AuthRouter = require('./routes/AuthRouter');
 const TeamRouter = require('./routes/TeamRouter');
+const UserRouter = require('./routes/UserRouter');
 
 app.use(express.json());
 app.use(cookieParser());
 
 app.use('/auth', AuthRouter)
 app.use('/teams', validateToken, TeamRouter)
+app.use('/me', validateToken, UserRouter)
 
 // currently can create teams and query teams for their associated members
 

@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../database/sequelize');
+const Team = require('./TeamModel');
 
 const User = sequelize.define('User', {
     id: {
@@ -17,5 +18,8 @@ const User = sequelize.define('User', {
         unique: true
     }
 });
+
+User.belongsToMany(Team, { through: 'UserTeam' });
+Team.belongsToMany(User, { through: 'UserTeam' });
 
 module.exports = User;

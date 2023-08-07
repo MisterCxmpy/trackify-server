@@ -17,10 +17,10 @@
     "jsonwebtoken": "^9.0.1",
     "pg": "^8.11.2",
     "sequelize": "^6.32.1",
+    "dotenv": "^16.3.1",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "dotenv": "^16.3.1",
     "nodemon": "^3.0.1"
   }
 }

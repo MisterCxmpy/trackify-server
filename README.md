@@ -1,7 +1,7 @@
 # MVP Web Server
 
 ## Live application
-(https://trackify-srv.onrender.com)[https://trackify-srv.onrender.com]
+[https://trackify-srv.onrender.com](https://trackify-srv.onrender.com)
 
 The objective is to make a web server that acts as a backend for a project management /bug tracker application.
 

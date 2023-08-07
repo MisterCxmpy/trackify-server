@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express()
 const cookieParser = require('cookie-parser')
+const cors = require('cors')
 
 const { validateToken } = require('./utils/validateToken');
 
@@ -10,6 +11,7 @@ const UserRouter = require('./routes/UserRouter');
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(cors())
 
 app.use('/auth', AuthRouter)
 app.use('/teams', validateToken, TeamRouter)

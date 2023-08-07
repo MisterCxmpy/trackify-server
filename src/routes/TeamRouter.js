@@ -15,7 +15,6 @@ router.get('/', async (req, res) => {
     }
 })
 
-
 // Team CRUD Operations
 
 router.post('/new', async (req, res) => {
@@ -99,6 +98,19 @@ router.get('/:teamId/:memberId/tasks', async (req, res) => {
         res.json(memberTasks);
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch member tasks.' });
+    }
+});
+
+// Team Memebrs Operations
+
+router.get('/:teamId/members', async (req, res) => {
+    try {
+        const teamId = req.params.teamId;
+        const teamTasks = await TeamService.getMembers(teamId);
+        res.json(teamTasks);
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ error: 'Failed to fetch team members.' });
     }
 });
 

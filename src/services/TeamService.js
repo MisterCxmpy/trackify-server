@@ -38,6 +38,7 @@ class TeamService {
                     model: User,
                     attributes: { exclude: ['password', 'id', 'updatedAt'] } // Exclude the 'password' attribute
                 },
+                attributes: { exclude: ['backlog'] }
             });
 
             return allTeams.map(this.scrubTeamResponse);
@@ -76,6 +77,19 @@ class TeamService {
         } catch (error) {
             console.error(error)
             throw new Error('Adding member to team failed.');
+        }
+    }
+
+    static async getMembers(teamId) {
+        try {
+            const team = await Team.findByPk(teamId, { include: { model: User, attributes: { exclude: ['id', 'updatedAt'] } } });
+            const members = this.scrubTeamResponse(team).members;
+
+            return members;
+
+        } catch (error) {
+            console.log(error)
+            throw new Error('Failed to query backlog.');
         }
     }
 

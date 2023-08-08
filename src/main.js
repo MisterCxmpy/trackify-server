@@ -17,13 +17,16 @@ app.use('/auth', AuthRouter)
 app.use('/teams', validateToken, TeamRouter)
 app.use('/me', validateToken, UserRouter)
 
-// currently can create teams and query teams for their associated members
+// currently can:
+// create account, login
+// create teams and query teams for their associated members
+// assign people to a team or join a team yourself, either via the friend code or by a request via that team's id
+// create simple tasks on a team and push them to a backlog
 
 // need to:
+// add user roles inside a team (admin, contributer, readonly)
 
 // remove members from team
-
-// add first, last name and email to the user model, concattinate both to create username 
 
 // assign tickets to members
 // edit state of tickets and reassign them to new members

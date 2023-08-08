@@ -10,7 +10,7 @@ class TeamService {
             id: data.id,
             team_name: data.team_name,
             backlog: data.backlog,
-            members: data.Users?.map(user => {
+            members: data.members?.map(user => {
                 return {
                     id: user.id,
                     username: user.username,
@@ -36,6 +36,7 @@ class TeamService {
             const allTeams = await Team.findAll({
                 include: {
                     model: User,
+                    as: 'members',
                     attributes: { exclude: ['password', 'id', 'updatedAt'] } // Exclude the 'password' attribute
                 },
                 attributes: { exclude: ['backlog'] }
@@ -52,7 +53,7 @@ class TeamService {
         try {
             const teams = await Team.findAll({
                 where: { id: { [Op.eq]: id } },
-                include: { model: User, attributes: { exclude: ['password', 'id', 'updatedAt'] } },
+                include: { model: User, as: 'members', attributes: { exclude: ['password', 'id', 'updatedAt'] } },
                 limit: 1
             });
 
@@ -71,7 +72,7 @@ class TeamService {
             }
 
             // Assuming you have a 'user' association in your Team model
-            await team.addUser(memberId);
+            await team.addMember(memberId);
 
             return 'Member added to team successfully.';
         } catch (error) {

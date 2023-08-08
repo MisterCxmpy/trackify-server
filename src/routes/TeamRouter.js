@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const TeamService = require('../services/TeamService');
 const TicketService = require('../services/TicketService');
+const UserService = require('../services/UserService');
 
 // DEV OPERATIONS
 
@@ -47,6 +48,18 @@ router.get('/:teamId/join', async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch team details.' });
     }
 });
+
+router.get('/:teamId/add/:friendCode', async (req, res) => {
+    try {
+        const user = await UserService.queryFC(req.params.friendCode)
+        const team = await TeamService.addMemberToTeam(req.params.teamId, user.id)
+
+        res.json(team)
+    } catch (error) {
+        res.json({ message: error.detail })
+    }
+})
+
 
 router.patch('/:teamId', async (req, res) => {
     try {

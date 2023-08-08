@@ -49,7 +49,7 @@ User.belongsToMany(User, {
     otherKey: 'friendId'
 });
 
-User.belongsToMany(Team, { through: 'UserTeam' });
-Team.belongsToMany(User, { through: 'UserTeam' });
+User.belongsToMany(Team, { through: 'UserTeam', as: 'teams' });
+Team.belongsToMany(User, { through: 'UserTeam', as: 'members' });
 
 module.exports = User;

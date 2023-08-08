@@ -24,8 +24,8 @@ class UserService {
         try {
             const users = await User.findByPk(id, {
                 include: {
-                    model: User,
-                    as: 'friends',
+                    model: Team,
+                    as: 'teams',
                     attributes: { exclude: ['password', 'id', 'updatedAt'] } // Exclude the 'password' attribute
                 }, attributes: { exclude: ['password', 'updatedAt'] }
             })
@@ -37,19 +37,19 @@ class UserService {
         }
     }
 
-    static async addFriend(friendCode, userId) {
-        try {
-            const user1 = await User.findByPk(userId)
-            const user2 = await User.findOne({ where: { friend_code: friendCode } })
+    static async queryFC(friendCode) {
+        const users = await User.findOne({
+            where: {
+                friend_code: friendCode
+            },
+            include: {
+                model: Team,
+                as: 'teams',
+                attributes: { exclude: ['password', 'id', 'updatedAt'] } // Exclude the 'password' attribute
+            }, attributes: { exclude: ['password', 'updatedAt'] }
+        })
 
-            await user1.addFriend(user2)
-            const friends = await user1.getFriends()
-
-            return friends
-        } catch (error) {
-            console.log(error)
-            throw new Error(error.message)
-        }
+        return users;
     }
 
     static async getUserFriends(userId) {

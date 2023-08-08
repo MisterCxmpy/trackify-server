@@ -42,6 +42,13 @@ User.beforeCreate(async (user) => {
     user.username = generatedUsername;
 });
 
+User.belongsToMany(User, {
+    as: 'friends',
+    through: 'UserFriends',
+    foreignKey: 'userId',
+    otherKey: 'friendId'
+});
+
 User.belongsToMany(Team, { through: 'UserTeam' });
 Team.belongsToMany(User, { through: 'UserTeam' });
 

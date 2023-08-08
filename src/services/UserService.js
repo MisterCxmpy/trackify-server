@@ -5,10 +5,12 @@ class UserService {
 
     static async create(userData) {
         try {
-            const { password, username } = userData;
+            const { password, first_name, last_name, email } = userData;
             const user = await User.create({
                 password,
-                username
+                first_name,
+                last_name,
+                email
             });
 
             return { ...user.dataValues, password }
@@ -20,7 +22,7 @@ class UserService {
 
     static async query(id) {
         try {
-            const users = await User.findByPk(id)
+            const users = await User.findByPk(id, { attributes: { exclude: ['password', 'updatedAt'] } })
 
             return users;
         } catch (error) {

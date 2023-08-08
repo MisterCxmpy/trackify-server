@@ -20,6 +20,7 @@ router.post('/login', async (req, res) => {
 router.post('/register', async (req, res) => {
     try {
         const hashedPassword = await AuthService.hashPass(req.body.password)
+        console.log(req.body)
         const user = await UserService.create({ ...req.body, password: hashedPassword });
         const token = AuthService.createToken(user.id);
 

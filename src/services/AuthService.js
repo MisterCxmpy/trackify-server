@@ -10,8 +10,8 @@ class AuthService {
 
     static async authenticateUser(userData) {
         try {
-            const { username, password } = userData;
-            const user = await User.findOne({ where: { username } });
+            const { email, password } = userData;
+            const user = await User.findOne({ where: { email } });
 
             if (!user) {
                 throw new Error('Authentication failed. (User not found.)');

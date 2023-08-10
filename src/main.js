@@ -3,7 +3,7 @@ const app = express()
 const cookieParser = require('cookie-parser')
 const cors = require('cors')
 
-const { validateToken } = require('./utils/validateToken');
+const validateToken = require('./middleware/validateToken');
 
 const AuthRouter = require('./routes/AuthRouter');
 const TeamRouter = require('./routes/TeamRouter');
@@ -24,9 +24,7 @@ app.use('/me', validateToken, UserRouter)
 // create simple tasks on a team and push them to a backlog
 
 // need to:
-// add user roles inside a team (admin, contributer, readonly)
-
-// remove members from team
+// add user roles inside a team (admin, contributer, reader) // half done, need to make roles work
 
 // assign tickets to members
 // edit state of tickets and reassign them to new members

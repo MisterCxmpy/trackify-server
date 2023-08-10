@@ -21,9 +21,10 @@ router.get('/', async (req, res) => {
 router.post('/new', async (req, res) => {
     try {
         const newTeam = await TeamService.createTeam(req.body);
+        await TeamService.addMemberToTeam(team.id, req.userId);
         res.status(201).json(newTeam);
     } catch (error) {
-        res.status(500).json({ error: 'Failed to create team.' });
+        res.status(500).json({ error: error.message });
     }
 });
 
@@ -36,30 +37,6 @@ router.get('/:teamId', async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch team details.' });
     }
 });
-
-router.get('/:teamId/join', async (req, res) => {
-    try {
-        const teamId = req.params.teamId;
-        const teamDetails = await TeamService.addMemberToTeam(teamId, req.userId);
-
-        res.json(teamDetails);
-    } catch (error) {
-        console.log(error.message)
-        res.status(500).json({ error: 'Failed to fetch team details.' });
-    }
-});
-
-router.get('/:teamId/add/:friendCode', async (req, res) => {
-    try {
-        const user = await UserService.queryFC(req.params.friendCode)
-        const team = await TeamService.addMemberToTeam(req.params.teamId, user.id)
-
-        res.json(team)
-    } catch (error) {
-        res.json({ message: error.detail })
-    }
-})
-
 
 router.patch('/:teamId', async (req, res) => {
     try {
@@ -97,6 +74,7 @@ router.post('/:teamId/tasks/new', async (req, res) => {
     try {
         const teamId = req.params.teamId;
         const team = await TicketService.create(teamId, req.body);
+
         res.json(team);
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch team tasks.' });
@@ -115,6 +93,52 @@ router.get('/:teamId/:memberId/tasks', async (req, res) => {
 });
 
 // Team Memebrs Operations
+
+router.get('/:teamId/join', async (req, res) => {
+    try {
+        const teamId = req.params.teamId;
+        const teamDetails = await TeamService.addMemberToTeam(teamId, req.user.id);
+
+        res.json(teamDetails);
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ error: 'Failed to fetch team details.' });
+    }
+});
+
+router.get('/:teamId/leave', async (req, res) => {
+    try {
+        const teamId = req.params.teamId;
+        const teamDetails = await TeamService.removeMemberFromTeam(teamId, req.user.id);
+
+        res.json(teamDetails);
+    } catch (error) {
+        console.log(error.message)
+        res.status(500).json({ error: 'Failed to fetch team details.' });
+    }
+});
+
+router.get('/:teamId/add/:friendCode', async (req, res) => {
+    try {
+        const user = await UserService.queryFC(req.params.friendCode)
+        const team = await TeamService.addMemberToTeam(req.params.teamId, user.id)
+
+        res.json(team)
+    } catch (error) {
+        res.json({ message: error.detail })
+    }
+})
+
+router.get('/:teamId/remove/:friendCode', async (req, res) => {
+    try {
+        const user = await UserService.queryFC(req.params.friendCode)
+        const team = await TeamService.removeMemberFromTeam(req.params.teamId, user.id)
+
+        res.json(team)
+    } catch (error) {
+        res.json({ message: error.detail })
+    }
+})
 
 router.get('/:teamId/members', async (req, res) => {
     try {

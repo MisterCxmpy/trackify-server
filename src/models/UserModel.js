@@ -1,8 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../database/sequelize');
-const Team = require('./TeamModel');
 
-const nanoid = require('nanoid')
+const nanoid = require('nanoid');
 
 const User = sequelize.define('User', {
     id: {
@@ -41,15 +40,5 @@ User.beforeCreate(async (user) => {
     const generatedUsername = `${user.first_name.toLowerCase()} ${user.last_name.toLowerCase()}`;
     user.username = generatedUsername;
 });
-
-User.belongsToMany(User, {
-    as: 'friends',
-    through: 'UserFriends',
-    foreignKey: 'userId',
-    otherKey: 'friendId'
-});
-
-User.belongsToMany(Team, { through: 'UserTeam', as: 'teams' });
-Team.belongsToMany(User, { through: 'UserTeam', as: 'members' });
 
 module.exports = User;

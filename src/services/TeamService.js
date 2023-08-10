@@ -2,6 +2,7 @@ const { Op } = require('sequelize');
 const Team = require('../models/TeamModel');
 const User = require('../models/UserModel');
 const Ticket = require('../models/TicketModel');
+const UserTeam = require('../models/UserTeamModel');
 
 class TeamService {
 
@@ -14,8 +15,7 @@ class TeamService {
                 return {
                     id: user.id,
                     username: user.username,
-                    createdAt: user.createdAt,
-                    updatedAt: user.updatedAt
+                    role: user.UserTeam?.role
                 };
             })
         }
@@ -27,17 +27,19 @@ class TeamService {
             return newTeam;
         } catch (error) {
             console.log(error)
-            throw new Error('Team creation failed.');
+            throw new Error({ error: error.message });
         }
     }
 
     static async findAll() {
+        const exclude = ['password', 'id', 'updatedAt', 'createdAt', 'first_name', 'last_name'];
+
         try {
             const allTeams = await Team.findAll({
                 include: {
                     model: User,
                     as: 'members',
-                    attributes: { exclude: ['password', 'id', 'updatedAt'] } // Exclude the 'password' attribute
+                    attributes: { exclude } // Exclude the 'password' attribute
                 },
                 attributes: { exclude: ['backlog'] }
             });
@@ -50,34 +52,60 @@ class TeamService {
     }
 
     static async find(id) {
+        const exclude = ['password', 'id', 'updatedAt', 'createdAt', 'first_name', 'last_name'];
+
         try {
-            const teams = await Team.findAll({
-                where: { id: { [Op.eq]: id } },
-                include: { model: User, as: 'members', attributes: { exclude: ['password', 'id', 'updatedAt'] } },
-                limit: 1
+            const team = await Team.findByPk(id, {
+                include: {
+                    model: User,
+                    as: 'members',
+                    attributes: { exclude },
+                    through: { attributes: ['role'] }
+                }
             });
 
-            return this.scrubTeamResponse(teams[0]);
-        } catch (error) {
-            console.error(error)
-            throw new Error('Team Query Failed.');
-        }
-    }
-
-    static async addMemberToTeam(teamId, memberId) {
-        try {
-            const team = await Team.findByPk(teamId);
             if (!team) {
                 throw new Error('Team not found.');
             }
 
-            // Assuming you have a 'user' association in your Team model
-            await team.addMember(memberId);
+            return this.scrubTeamResponse(team);
+        } catch (error) {
+            console.error(error);
+            throw new Error('Team Query Failed.');
+        }
+    }
+
+    static async addMemberToTeam(teamId, memberId, role = 'reader') {
+        try {
+            const team = await Team.findByPk(teamId);
+
+            if (!team) {
+                throw new Error('Team not found.');
+            }
+
+            await UserTeam.create({ UserId: memberId, TeamId: teamId, role });
 
             return 'Member added to team successfully.';
         } catch (error) {
-            console.error(error)
-            throw new Error('Adding member to team failed.');
+            console.log(error)
+            throw new Error(error.message);
+        }
+    }
+
+    static async removeMemberFromTeam(TeamId, UserId) {
+        try {
+            const team = await Team.findByPk(TeamId);
+            if (!team) {
+                throw new Error('Team not found.');
+            }
+
+            // Afind and delete the user team link
+            await (await UserTeam.findOne({ where: { TeamId, UserId } })).destroy();
+
+            return 'Member removed from team successfully.';
+        } catch (error) {
+            console.error(error);
+            throw new Error('Removing member from team failed.');
         }
     }
 

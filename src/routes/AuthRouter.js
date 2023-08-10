@@ -2,6 +2,8 @@ const router = require('express').Router();
 const AuthService = require('../services/AuthService');
 const UserService = require('../services/UserService');
 
+const validateToken = require('../middleware/validateToken')
+
 const TWO_HOURS = 1000 * 60 * 60 * 2; // move to config file later
 
 router.post('/login', async (req, res) => {
@@ -31,5 +33,22 @@ router.post('/register', async (req, res) => {
         res.json({ message: error.message })
     }
 })
+
+router.get('/team-permissions/:teamId', validateToken, async (req, res) => {
+    const team = req.params.teamId;
+    const user = req.userId;
+    try {
+
+        // Determine the team-specific permissions based on user role and team
+        const teamPermissions = await AuthService.calculateTeamPermissions(user, team);
+
+        // Generate a team-specific token with the calculated permissions
+        const teamToken = AuthService.createTeamToken(teamPermissions);
+
+        res.json({ teamToken });
+    } catch (error) {
+        res.status(401).send('Unauthorized');
+    }
+});
 
 module.exports = router;

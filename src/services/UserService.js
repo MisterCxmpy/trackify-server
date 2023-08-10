@@ -13,7 +13,7 @@ class UserService {
                 email
             });
 
-            return { ...user.dataValues, password }
+            return { ...user.dataValues, password: null }
         } catch (error) {
             console.log(error)
             throw new Error(error.message);
@@ -46,22 +46,10 @@ class UserService {
                 model: Team,
                 as: 'teams',
                 attributes: { exclude: ['password', 'id', 'updatedAt'] } // Exclude the 'password' attribute
-            }, attributes: { exclude: ['password', 'updatedAt'] }
+            }, attributes: { exclude: ['password', 'updatedAt', 'id'] }
         })
 
         return users;
-    }
-
-    static async getUserFriends(userId) {
-        try {
-            const user = await User.findByPk(userId)
-            const friends = await user.getFriends()
-
-            return friends
-        } catch (error) {
-            console.log(error)
-            throw new Error(error.message)
-        }
     }
 
     static async getUserTeams(userId) {
@@ -72,11 +60,16 @@ class UserService {
                 throw new Error('User not found.');
             }
 
-            const teams = await user.getTeams({
-                attributes: ['team_name'] // Only select the 'team_name' attribute
+            const teamsRaw = await user.getTeams({ attributes: ['team_name', 'id'] }); // get all teams from user
+
+            const teams = teamsRaw.map(async team => { // map over each team and get their memebers with their role
+                const membersRaw = await (await Team.findByPk(team.id)).getMembers({ attributes: ['username'] })
+                const members = membersRaw.map(m => ({ username: m.username, role: m?.role }))
+
+                return { team_name: team.team_name, members }
             });
 
-            return teams;
+            return await Promise.all(teams);
         } catch (error) {
             throw new Error('Failed to fetch user teams.');
         }

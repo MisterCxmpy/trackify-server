@@ -1,11 +1,16 @@
 const User = require('../models/UserModel.js');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const Team = require('../models/TeamModel.js');
 
 class AuthService {
 
     static createToken(userPayload) {
         return jwt.sign(userPayload, process.env.JWT_SECRET)
+    }
+
+    static createTeamToken(teamPermissions) {
+        return jwt.sign({ permissions: teamPermissions }, process.env.JWT_SECRET)
     }
 
     static async authenticateUser(userData) {
@@ -36,6 +41,19 @@ class AuthService {
         } catch (error) {
             throw new Error('Hashing password failed.');
         }
+    }
+
+    static async calculateTeamPermissions(userId, teamId) {
+        try {
+            const team = await Team.findByPk(teamId, { attributes: { include: { model: User, as: 'members' } } });
+            console.log(team.members.find(m => m.id === userId));
+            return ['read', 'write', 'delete']
+        } catch (error) {
+            console.log(error);
+            return ['read', 'write', 'delete']
+        }
+
+
     }
 }
 

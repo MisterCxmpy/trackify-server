@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
+const UserService = require('../services/UserService')
 
-const validateToken = (req, res, next) => {
+const validateToken = async (req, res, next) => {
     // Get the token from the cookie
     const token = req?.cookies?.token;
 
@@ -14,7 +15,7 @@ const validateToken = (req, res, next) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
         // Attach the decoded token to the request object for later use
-        req.userId = decoded;
+        req.user = await UserService.query(decoded);
 
         // Proceed to the next middleware or route handler
         next();
@@ -25,4 +26,4 @@ const validateToken = (req, res, next) => {
     }
 };
 
-module.exports = { validateToken };
+module.exports = validateToken;

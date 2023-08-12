@@ -5,15 +5,24 @@ class TicketService {
 
     static async create(teamId, ticketData) {
         try {
-            const team = await Team.findByPk(teamId);
-            const ticket = await Ticket.create(ticketData);
+            await Ticket.create({ ...ticketData, team_id: teamId });
 
-            ticket.team_id = team.id;
-
-            await ticket.save();
-            await team.update({ ...team, backlog: [...team.backlog, ticket.id] });
+            const team = await Team.findByPk(teamId, {
+                include: { model: Ticket, as: 'backlog' },
+                attributes: { exclude: ['updatedAt', 'createdAt', 'id'] }
+            });
 
             return team
+        } catch (error) {
+            console.log(error)
+            throw new Error(error.message)
+        }
+    }
+
+    static async find(teamId, ticketId) {
+        try {
+            const ticket = await Ticket.findByPk(ticketId);
+            return ticket
         } catch (error) {
             console.log(error)
             throw new Error(error.message)

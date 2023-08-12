@@ -1,5 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../database/sequelize'); // Import your Sequelize instance
+const Ticket = require('./TicketModel');
+
 const { v4: uuidv4 } = require('uuid');
 
 const Team = sequelize.define('Team', {
@@ -11,11 +13,9 @@ const Team = sequelize.define('Team', {
     team_name: {
         type: DataTypes.STRING,
         allowNull: false
-    },
-    backlog: {
-        type: DataTypes.ARRAY(DataTypes.INTEGER), // Assuming backlog contains ticket IDs
-        defaultValue: [] // Initialize with an empty array
-    },
+    }
 });
 
-module.exports = Team;
+Team.hasMany(Ticket, { foreignKey: 'team_id', as: 'backlog' });
+
+module.exports = Team

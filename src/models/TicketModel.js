@@ -1,13 +1,14 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../database/sequelize');
-const Team = require('./TeamModel'); // Import the Team model
-const User = require('./UserModel'); // Import the Team model
+const sequelize = require('../database/sequelize'); // Import your Sequelize instance
+
+const nanoid = require('nanoid');
+const Team = require('./TeamModel');
 
 const Ticket = sequelize.define('Ticket', {
     id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.STRING,
         primaryKey: true,
-        autoIncrement: true
+        defaultValue: () => nanoid(6)
     },
     title: {
         type: DataTypes.STRING,
@@ -19,11 +20,11 @@ const Ticket = sequelize.define('Ticket', {
     state: {
         type: DataTypes.STRING,
         defaultValue: 'new' // new, todo, closed, removed
+    },
+    team_id: {
+        type: DataTypes.STRING,
+        allowNull: false
     }
 });
-
-// Define associations
-Ticket.belongsTo(Team, { foreignKey: 'team_id', as: 'team' });
-Ticket.belongsTo(User, { foreignKey: 'owner_id', as: 'owner' });
 
 module.exports = Ticket;

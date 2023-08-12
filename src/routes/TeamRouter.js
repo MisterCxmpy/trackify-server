@@ -18,10 +18,10 @@ router.get('/', async (req, res) => {
 
 // Team CRUD Operations
 
-router.post('/new', async (req, res) => {
+router.post('/', async (req, res) => {
     try {
         const newTeam = await TeamService.createTeam(req.body);
-        await TeamService.addMemberToTeam(team.id, req.userId);
+        await TeamService.addMemberToTeam(newTeam.id, req.user.id, 'administrator');
         res.status(201).json(newTeam);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -34,7 +34,7 @@ router.get('/:teamId', async (req, res) => {
         const teamDetails = await TeamService.find(teamId);
         res.json(teamDetails);
     } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch team details.' });
+        res.status(500).json({ error: error.message });
     }
 });
 
@@ -55,40 +55,6 @@ router.delete('/:teamId', async (req, res) => {
         res.json({ message: 'Team deleted successfully.' });
     } catch (error) {
         res.status(500).json({ error: 'Failed to delete team.' });
-    }
-});
-
-// Team Tickets Operations
-
-router.get('/:teamId/tasks', async (req, res) => {
-    try {
-        const teamId = req.params.teamId;
-        const teamTasks = await TeamService.getBacklog(teamId);
-        res.json(teamTasks);
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch team tasks.' });
-    }
-});
-
-router.post('/:teamId/tasks/new', async (req, res) => {
-    try {
-        const teamId = req.params.teamId;
-        const team = await TicketService.create(teamId, req.body);
-
-        res.json(team);
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch team tasks.' });
-    }
-});
-
-router.get('/:teamId/:memberId/tasks', async (req, res) => {
-    try {
-        const teamId = req.params.teamId;
-        const memberId = req.params.memberId;
-        const memberTasks = await TeamService.getMemberTasks(teamId, memberId);
-        res.json(memberTasks);
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch member tasks.' });
     }
 });
 
@@ -148,6 +114,40 @@ router.get('/:teamId/members', async (req, res) => {
     } catch (error) {
         console.log(error)
         res.status(500).json({ error: 'Failed to fetch team members.' });
+    }
+});
+
+// Team Tickets Operations
+
+router.get('/:teamId/tasks', async (req, res) => {
+    try {
+        const teamId = req.params.teamId;
+        const teamTasks = await TeamService.getBacklog(teamId);
+        res.json({ backlog: teamTasks });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch team tasks.' });
+    }
+});
+
+router.post('/:teamId/tasks', async (req, res) => {
+    try {
+        const teamId = req.params.teamId;
+        const team = await TicketService.create(teamId, req.body);
+
+        res.json(team);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch team tasks.' });
+    }
+});
+
+router.get('/:teamId/:memberId/tasks', async (req, res) => {
+    try {
+        const teamId = req.params.teamId;
+        const memberId = req.params.memberId;
+        const memberTasks = await TeamService.getMemberTasks(teamId, memberId);
+        res.json(memberTasks);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch member tasks.' });
     }
 });
 

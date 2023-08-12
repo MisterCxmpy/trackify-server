@@ -15,6 +15,7 @@ class TeamService {
                 return {
                     id: user.id,
                     username: user.username,
+                    email: user.email,
                     role: user.UserTeam?.role
                 };
             })
@@ -50,18 +51,24 @@ class TeamService {
             throw new Error('Team Query Failed.');
         }
     }
-
     static async find(id) {
         const exclude = ['password', 'id', 'updatedAt', 'createdAt', 'first_name', 'last_name'];
 
         try {
             const team = await Team.findByPk(id, {
-                include: {
-                    model: User,
-                    as: 'members',
-                    attributes: { exclude },
-                    through: { attributes: ['role'] }
-                }
+                include: [
+                    {
+                        model: User,
+                        as: 'members',
+                        attributes: { exclude },
+                        through: { attributes: ['role'] }
+                    },
+                    {
+                        model: Ticket, // Assuming you've imported the Ticket model
+                        as: 'backlog', // This should match the alias you've defined in TeamModel
+                        attributes: { exclude: ['team_id'] }
+                    }
+                ]
             });
 
             if (!team) {
@@ -71,9 +78,10 @@ class TeamService {
             return this.scrubTeamResponse(team);
         } catch (error) {
             console.error(error);
-            throw new Error('Team Query Failed.');
+            throw new Error(error.message);
         }
     }
+
 
     static async addMemberToTeam(teamId, memberId, role = 'reader') {
         try {

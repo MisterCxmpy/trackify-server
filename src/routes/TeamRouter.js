@@ -123,7 +123,7 @@ router.get('/:teamId/tasks', async (req, res) => {
     try {
         const teamId = req.params.teamId;
         const teamTasks = await TeamService.getBacklog(teamId);
-        res.json({ backlog: teamTasks });
+        res.json(teamTasks);
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch team tasks.' });
     }
@@ -137,6 +137,19 @@ router.post('/:teamId/tasks', async (req, res) => {
         res.json(team);
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch team tasks.' });
+    }
+});
+
+router.get('/:teamId/tasks/:taskId', async (req, res) => {
+    const teamId = req.params.teamId;
+    const taskId = req.params.taskId;
+
+    try {
+        const teamTickets = await TicketService.find(teamId, taskId);
+
+        res.json(teamTickets);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 });
 

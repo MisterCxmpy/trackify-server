@@ -1,18 +1,13 @@
+const User = require("../models/UserModel");
 const Team = require("../models/TeamModel")
 const Ticket = require("../models/TicketModel");
-const User = require("../models/UserModel");
 class TicketService {
 
     static async create(teamId, ticketData) {
         try {
-            await Ticket.create({ ...ticketData, team_id: teamId });
+            const ticket = await Ticket.create({ ...ticketData, team_id: teamId });
 
-            const team = await Team.findByPk(teamId, {
-                include: { model: Ticket, as: 'backlog' },
-                attributes: { exclude: ['updatedAt', 'createdAt', 'id'] }
-            });
-
-            return team
+            return ticket
         } catch (error) {
             console.log(error)
             throw new Error(error.message)
@@ -21,7 +16,10 @@ class TicketService {
 
     static async find(teamId, ticketId) {
         try {
-            const ticket = await Ticket.findByPk(ticketId);
+            const ticket = await Ticket.findOne({ where: { team_id: teamId, id: ticketId }, attributes: { exclude: ['team_id'] } });
+
+            if (!ticket) throw new Error('No ticket found')
+
             return ticket
         } catch (error) {
             console.log(error)

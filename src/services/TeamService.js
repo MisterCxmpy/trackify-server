@@ -1,8 +1,8 @@
 const { Op } = require('sequelize');
-const Team = require('../models/TeamModel');
 const User = require('../models/UserModel');
-const Ticket = require('../models/TicketModel');
+const Team = require('../models/TeamModel');
 const UserTeam = require('../models/UserTeamModel');
+const Ticket = require('../models/TicketModel');
 
 class TeamService {
 
@@ -51,6 +51,7 @@ class TeamService {
             throw new Error('Team Query Failed.');
         }
     }
+
     static async find(id) {
         const exclude = ['password', 'id', 'updatedAt', 'createdAt', 'first_name', 'last_name'];
 
@@ -81,7 +82,6 @@ class TeamService {
             throw new Error(error.message);
         }
     }
-
 
     static async addMemberToTeam(teamId, memberId, role = 'reader') {
         try {
@@ -147,7 +147,10 @@ class TeamService {
 
     static async getBacklog(teamId) {
         try {
-            const team = await Team.findByPk(teamId);
+            const team = await Team.findByPk(teamId, { include: { model: Ticket, as: 'backlog' } });
+
+            if (!team) throw new Error('Team not found.')
+
             const backlog = team.backlog;
 
             const tickets = await Ticket.findAll({
@@ -161,11 +164,11 @@ class TeamService {
                 }
             });
 
-            return tickets;
+            return { team_name: team.team_name, backlog: tickets };
 
         } catch (error) {
             console.log(error)
-            throw new Error('Failed to query backlog.');
+            throw new Error(error);
         }
     }
 

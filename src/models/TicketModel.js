@@ -1,8 +1,10 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../database/sequelize'); // Import your Sequelize instance
+const Team = require('./TeamModel');
 
 const nanoid = require('nanoid');
-const Team = require('./TeamModel');
+
+const VALID_STATES = ['new', 'in progress', 'completed', 'blocked'];
 
 const Ticket = sequelize.define('Ticket', {
     id: {
@@ -19,7 +21,14 @@ const Ticket = sequelize.define('Ticket', {
     },
     state: {
         type: DataTypes.STRING,
-        defaultValue: 'new' // new, todo, closed, removed
+        allowNull: false,
+        defaultValue: 'new', // Set default value to 'new'
+        validate: {
+            isIn: {
+                args: [VALID_STATES],
+                msg: 'Invalid ticket state'
+            }
+        }
     },
     team_id: {
         type: DataTypes.STRING,

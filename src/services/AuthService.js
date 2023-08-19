@@ -3,6 +3,13 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const Team = require('../models/TeamModel.js');
 
+const UserPermissions = {
+    administrator: ['read', 'write', 'delete', 'set-permissions', 'manage-users'],
+    contributer: ['read', 'write', 'delete'],
+    stakeholder: ['read'],
+    reader: ['read-limited'],
+}
+
 class AuthService {
 
     static createToken(userPayload) {
@@ -44,16 +51,28 @@ class AuthService {
     }
 
     static async calculateTeamPermissions(userId, teamId) {
+        const exclude = ['password', 'updatedAt', 'createdAt', 'first_name', 'last_name'];
         try {
-            const team = await Team.findByPk(teamId, { attributes: { include: { model: User, as: 'members' } } });
-            console.log(team.members.find(m => m.id === userId));
-            return ['read', 'write', 'delete']
+            const team = await Team.findByPk(teamId, {
+                include: [{
+                    model: User,
+                    as: 'members',
+                    attributes: { exclude },
+                    through: { attributes: ['role'] }
+                }],
+            });
+
+            const member = team.dataValues.members.find(m => m.id === userId);
+            if (!member) throw new Error('Team member not found.')
+
+            const memberWRole = { ...member.dataValues, role: member?.UserTeam?.role }
+
+            const perms = UserPermissions[memberWRole.role];
+            return { role: memberWRole.role, perms, team_name: team.team_name }
         } catch (error) {
             console.log(error);
-            return ['read', 'write', 'delete']
+            return null
         }
-
-
     }
 }
 

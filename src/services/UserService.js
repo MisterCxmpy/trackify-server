@@ -46,7 +46,7 @@ class UserService {
                 model: Team,
                 as: 'teams',
                 attributes: { exclude: ['password', 'id', 'updatedAt'] } // Exclude the 'password' attribute
-            }, attributes: { exclude: ['password', 'updatedAt', 'id'] }
+            }, attributes: { exclude: ['password', 'updatedAt'] }
         })
 
         return users;

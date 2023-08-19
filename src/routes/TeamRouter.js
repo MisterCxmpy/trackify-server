@@ -1,4 +1,6 @@
 const router = require('express').Router();
+const requireTeamPermissions = require('../middleware/requireTeamPermissions');
+const AuthService = require('../services/AuthService');
 const TeamService = require('../services/TeamService');
 const TicketService = require('../services/TicketService');
 const UserService = require('../services/UserService');
@@ -28,7 +30,7 @@ router.post('/', async (req, res) => {
     }
 });
 
-router.get('/:teamId', async (req, res) => {
+router.get('/:teamId', requireTeamPermissions(['read']), async (req, res) => {
     try {
         const teamId = req.params.teamId;
         const teamDetails = await TeamService.find(teamId);
@@ -38,7 +40,7 @@ router.get('/:teamId', async (req, res) => {
     }
 });
 
-router.patch('/:teamId', async (req, res) => {
+router.patch('/:teamId', requireTeamPermissions(['write']), async (req, res) => {
     try {
         const teamId = req.params.teamId;
         const updatedTeam = await TeamService.updateTeam(teamId, req.body);
@@ -48,7 +50,7 @@ router.patch('/:teamId', async (req, res) => {
     }
 });
 
-router.delete('/:teamId', async (req, res) => {
+router.delete('/:teamId', requireTeamPermissions(['delete']), async (req, res) => {
     try {
         const teamId = req.params.teamId;
         await TeamService.deleteTeam(teamId);
@@ -59,18 +61,6 @@ router.delete('/:teamId', async (req, res) => {
 });
 
 // Team Memebrs Operations
-
-router.get('/:teamId/join', async (req, res) => {
-    try {
-        const teamId = req.params.teamId;
-        const teamDetails = await TeamService.addMemberToTeam(teamId, req.user.id);
-
-        res.json(teamDetails);
-    } catch (error) {
-        console.log(error)
-        res.status(500).json({ error: 'Failed to fetch team details.' });
-    }
-});
 
 router.get('/:teamId/leave', async (req, res) => {
     try {
@@ -84,6 +74,18 @@ router.get('/:teamId/leave', async (req, res) => {
     }
 });
 
+router.get('/:teamId/perms', async (req, res) => {
+    try {
+        const teamId = req.params.teamId;
+        const permissions = await AuthService.calculateTeamPermissions(req.user.id, teamId);
+
+        res.json(permissions);
+    } catch (error) {
+        console.log(error.message)
+        res.status(500).json({ error: 'Failed to fetch team details.' });
+    }
+});
+
 router.get('/:teamId/add/:friendCode', async (req, res) => {
     try {
         const user = await UserService.queryFC(req.params.friendCode)
@@ -91,7 +93,7 @@ router.get('/:teamId/add/:friendCode', async (req, res) => {
 
         res.json(team)
     } catch (error) {
-        res.json({ message: error.detail })
+        res.json({ message: error.message })
     }
 })
 
@@ -119,7 +121,7 @@ router.get('/:teamId/members', async (req, res) => {
 
 // Team Tickets Operations
 
-router.get('/:teamId/tasks', async (req, res) => {
+router.get('/:teamId/tasks', requireTeamPermissions(['read']), async (req, res) => {
     try {
         const teamId = req.params.teamId;
         const teamTasks = await TeamService.getBacklog(teamId);
@@ -129,7 +131,7 @@ router.get('/:teamId/tasks', async (req, res) => {
     }
 });
 
-router.post('/:teamId/tasks', async (req, res) => {
+router.post('/:teamId/tasks', requireTeamPermissions(['write']), async (req, res) => {
     try {
         const teamId = req.params.teamId;
         const team = await TicketService.create(teamId, req.body);
@@ -140,7 +142,7 @@ router.post('/:teamId/tasks', async (req, res) => {
     }
 });
 
-router.get('/:teamId/tasks/:taskId', async (req, res) => {
+router.get('/:teamId/tasks/:taskId', requireTeamPermissions(['read']), async (req, res) => {
     const teamId = req.params.teamId;
     const taskId = req.params.taskId;
 
@@ -153,7 +155,7 @@ router.get('/:teamId/tasks/:taskId', async (req, res) => {
     }
 });
 
-router.get('/:teamId/:memberId/tasks', async (req, res) => {
+router.get('/:teamId/:memberId/tasks', requireTeamPermissions(['read']), async (req, res) => {
     try {
         const teamId = req.params.teamId;
         const memberId = req.params.memberId;

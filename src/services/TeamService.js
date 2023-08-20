@@ -32,6 +32,30 @@ class TeamService {
         }
     }
 
+    static async updateTeam(teamId, teamData) {
+        try {
+            const team = await Team.findByPk(teamId);
+            const updated = await team.update(teamData)
+
+            return updated;
+        } catch (error) {
+            console.log(error)
+            throw new Error({ error: error.message });
+        }
+    }
+
+    static async deleteTeam(teamId) {
+        try {
+            const team = await Team.findByPk(teamId);
+            await team.destroy()
+
+            return `Successfully deleted team ${teamId}`;
+        } catch (error) {
+            console.log(error)
+            throw new Error({ error: error.message });
+        }
+    }
+
     static async findAll() {
         const exclude = ['password', 'id', 'updatedAt', 'createdAt', 'first_name', 'last_name'];
 
@@ -112,8 +136,8 @@ class TeamService {
 
             return 'Member removed from team successfully.';
         } catch (error) {
-            console.error(error);
-            throw new Error('Removing member from team failed.');
+
+            throw new Error(error.message);
         }
     }
 

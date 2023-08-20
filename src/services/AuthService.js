@@ -4,9 +4,9 @@ const jwt = require('jsonwebtoken');
 const Team = require('../models/TeamModel.js');
 
 const UserPermissions = {
-    administrator: ['read', 'write', 'delete', 'set-permissions', 'manage-users'],
-    contributer: ['read', 'write', 'delete'],
-    stakeholder: ['read'],
+    administrator: ['read', 'write', 'delete', 'set-permissions', 'manage-users', 'read-limited'],
+    contributer: ['read', 'write', 'delete', 'read-limited'],
+    stakeholder: ['read', 'read-limited'],
     reader: ['read-limited'],
 }
 
@@ -68,7 +68,7 @@ class AuthService {
             const memberWRole = { ...member.dataValues, role: member?.UserTeam?.role }
 
             const perms = UserPermissions[memberWRole.role];
-            return { role: memberWRole.role, perms, team_name: team.team_name }
+            return { role: memberWRole.role, team_name: team.team_name, perms }
         } catch (error) {
             console.log(error);
             return null

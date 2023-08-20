@@ -6,6 +6,7 @@ const validateToken = require('../middleware/validateToken')
 
 const TWO_HOURS = 1000 * 60 * 60 * 2; // move to config file later
 const SAME_SITE = 'lax'
+
 router.post('/login', async (req, res) => {
     try {
         const user = await AuthService.authenticateUser(req.body); // attempt login
@@ -15,7 +16,7 @@ router.post('/login', async (req, res) => {
         res.json({ message: 'Succesfully Logged in.' });
     } catch (error) {
         console.log(error)
-        res.json({ message: error.message })
+        res.status(401).json({ message: error.message })
     }
 })
 
@@ -30,7 +31,7 @@ router.post('/register', async (req, res) => {
         res.json({ message: 'Succesfully Registered.' });
     } catch (error) {
         console.log(error)
-        res.json({ message: error.message })
+        res.status(422).json({ message: error.message })
     }
 })
 

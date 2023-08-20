@@ -5,6 +5,10 @@ const TeamService = require('../services/TeamService');
 const TicketService = require('../services/TicketService');
 const UserService = require('../services/UserService');
 
+
+const TWO_HOURS = 1000 * 60 * 60 * 2; // move to config file later
+const SAME_SITE = 'lax'
+
 // DEV OPERATIONS
 
 router.get('/', async (req, res) => {
@@ -22,31 +26,44 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
     try {
-        const newTeam = await TeamService.createTeam(req.body);
-        await TeamService.addMemberToTeam(newTeam.id, req.user.id, 'administrator');
-        res.status(201).json(newTeam);
+        const newTeam = await TeamService.createTeam(req.body); // create team off of user body
+        await TeamService.addMemberToTeam(newTeam.id, req.user.id, 'administrator'); // add user as admin
+        const { perms } = await AuthService.calculateTeamPermissions(req.user.id, newTeam.id) // calculate users permissions
+        const authToken = AuthService.createTeamToken(perms) // generate token for calculated permissions
+
+        res.cookie('teamToken', authToken, { sameSite: SAME_SITE, maxAge: TWO_HOURS }) // set teamToken
+        res.status(201).json(newTeam); // return new team data
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ message: error.message });
     }
 });
 
-router.get('/:teamId', requireTeamPermissions(['read']), async (req, res) => {
+router.get('/:teamId', requireTeamPermissions(['read-limited']), async (req, res) => {
     try {
         const teamId = req.params.teamId;
         const teamDetails = await TeamService.find(teamId);
+
+        if (!teamDetails) {
+            return res.status(404).json({ message: "Team not found" });
+        }
+
         res.json(teamDetails);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error("An error occurred:", error);
+
+        res.status(500).json({ message: "An unexpected error occurred" });
     }
 });
+
 
 router.patch('/:teamId', requireTeamPermissions(['write']), async (req, res) => {
     try {
         const teamId = req.params.teamId;
         const updatedTeam = await TeamService.updateTeam(teamId, req.body);
+
         res.json(updatedTeam);
     } catch (error) {
-        res.status(500).json({ error: 'Failed to update team.' });
+        res.status(500).json({ message: 'Failed to update team.' });
     }
 });
 
@@ -56,7 +73,7 @@ router.delete('/:teamId', requireTeamPermissions(['delete']), async (req, res) =
         await TeamService.deleteTeam(teamId);
         res.json({ message: 'Team deleted successfully.' });
     } catch (error) {
-        res.status(500).json({ error: 'Failed to delete team.' });
+        res.status(500).json({ message: 'Failed to delete team.' });
     }
 });
 
@@ -69,27 +86,38 @@ router.get('/:teamId/leave', async (req, res) => {
 
         res.json(teamDetails);
     } catch (error) {
-        console.log(error.message)
-        res.status(500).json({ error: 'Failed to fetch team details.' });
+
+        res.status(500).json({ message: error.message });
     }
 });
 
-router.get('/:teamId/perms', async (req, res) => {
+router.get('/:teamId/perms', requireTeamPermissions(['read']), async (req, res) => {
     try {
         const teamId = req.params.teamId;
         const permissions = await AuthService.calculateTeamPermissions(req.user.id, teamId);
 
-        res.json(permissions);
+        res.json({ user: req.user.username, ...permissions });
     } catch (error) {
         console.log(error.message)
-        res.status(500).json({ error: 'Failed to fetch team details.' });
+        res.status(500).json({ message: error.message });
     }
 });
 
-router.get('/:teamId/add/:friendCode', async (req, res) => {
+router.get('/:teamId/add/:friendCode', requireTeamPermissions(['manage-users']), async (req, res) => {
     try {
         const user = await UserService.queryFC(req.params.friendCode)
         const team = await TeamService.addMemberToTeam(req.params.teamId, user.id)
+
+        res.json(team)
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+})
+
+router.get('/:teamId/remove/:friendCode', requireTeamPermissions(['manage-users']), async (req, res) => {
+    try {
+        const user = await UserService.queryFC(req.params.friendCode)
+        const team = await TeamService.removeMemberFromTeam(req.params.teamId, user.id)
 
         res.json(team)
     } catch (error) {
@@ -97,25 +125,14 @@ router.get('/:teamId/add/:friendCode', async (req, res) => {
     }
 })
 
-router.get('/:teamId/remove/:friendCode', async (req, res) => {
-    try {
-        const user = await UserService.queryFC(req.params.friendCode)
-        const team = await TeamService.removeMemberFromTeam(req.params.teamId, user.id)
-
-        res.json(team)
-    } catch (error) {
-        res.json({ message: error.detail })
-    }
-})
-
-router.get('/:teamId/members', async (req, res) => {
+router.get('/:teamId/members', requireTeamPermissions(['read']), async (req, res) => {
     try {
         const teamId = req.params.teamId;
         const teamTasks = await TeamService.getMembers(teamId);
         res.json(teamTasks);
     } catch (error) {
-        console.log(error)
-        res.status(500).json({ error: 'Failed to fetch team members.' });
+
+        res.status(500).json({ message: error.message });
     }
 });
 
@@ -127,18 +144,18 @@ router.get('/:teamId/tasks', requireTeamPermissions(['read']), async (req, res) 
         const teamTasks = await TeamService.getBacklog(teamId);
         res.json(teamTasks);
     } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch team tasks.' });
+        res.status(500).json({ message: error.message });
     }
 });
 
-router.post('/:teamId/tasks', requireTeamPermissions(['write']), async (req, res) => {
+router.post('/:teamId/tasks', requireTeamPermissions(['write', 'read']), async (req, res) => {
     try {
         const teamId = req.params.teamId;
         const team = await TicketService.create(teamId, req.body);
 
         res.json(team);
     } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch team tasks.' });
+        res.status(500).json({ message: error.message });
     }
 });
 
@@ -151,7 +168,7 @@ router.get('/:teamId/tasks/:taskId', requireTeamPermissions(['read']), async (re
 
         res.json(teamTickets);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ message: error.message });
     }
 });
 

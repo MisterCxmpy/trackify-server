@@ -1,8 +1,8 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../database/sequelize'); // Import your Sequelize instance
-const Team = require('./TeamModel');
 
 const nanoid = require('nanoid');
+const User = require('./UserModel');
 
 const VALID_STATES = ['new', 'in progress', 'completed', 'blocked'];
 
@@ -33,6 +33,14 @@ const Ticket = sequelize.define('Ticket', {
     team_id: {
         type: DataTypes.STRING,
         allowNull: false
+    },
+    owner: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        references: {
+            model: User,
+            key: 'friend_code'
+        }
     }
 });
 

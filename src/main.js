@@ -24,7 +24,7 @@ app.use('/me', validateToken, UserRouter)
 // create simple tasks on a team and push them to a backlog
 
 // need to:
-// add user roles inside a team (admin, contributer, reader and stakeholder (reader can only see dashboard)) // make permissions work and also elevation requests
+// add user role elevation requests and validate roles more frequently for effective authorization
 
 // assign tickets to members
 // edit state of tickets and reassign them to new members
